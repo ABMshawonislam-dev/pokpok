@@ -84,27 +84,27 @@ const Registration = () => {
   };
 
   return (
-    <div className="flex">
+    <div className="md:flex px-2.5 md:px-0">
       <ToastContainer position="bottom-center" theme="dark" />
-      <div className="w-2/4 flex justify-end">
-        <div className="mr-16 mt-40">
-          <h3 className="font-nunito font-bold text-4xl text-heading">
+      <div className="w-full md:w-2/4 md:flex justify-end">
+        <div className="md:mr-0 md:ml-8 lg:mr-16 xl:mt-10 xl:mt-40">
+          <h3 className="font-nunito text-center md:text-left font-bold text-3xl  lg:text-4xl text-heading">
             Get started with easily register
           </h3>
-          <p className="font-nunito font-regular text-xl text-secondary mt-3.5">
+          <p className="font-nunito font-regular text-xl text-secondary mt-3.5 text-center md:text-left">
             Free register and you can enjoy it
           </p>
 
           {success && (
-            <p className="font-nunito font-semibold text-2xl bg-green-500 w-96 rounded-sm mt-2.5 p-1.5 text-white">
+            <p className="font-nunito font-semibold text-2xl bg-green-500 w-full lg:w-96 rounded-sm mt-2.5 p-1.5 text-white">
               {success}
             </p>
           )}
 
-          <div className="relative mt-16 w-96">
+          <div className="relative mt-10 md:mt-16 w-full md:w-80 lg:w-96">
             <input
               type="email"
-              className="border border-solid border-secondary w-96 py-6 px-14 rounded-lg"
+              className="border border-solid border-secondary w-full md:w-80 lg:w-96 py-6 px-14 rounded-lg"
               onChange={handleEmail}
               value={email}
             />
@@ -113,15 +113,15 @@ const Registration = () => {
             </p>
 
             {emailerr && (
-              <p className="font-nunito font-semibold text-sm bg-red-500 w-96 rounded-sm mt-2.5 p-1.5 text-white">
+              <p className="font-nunito font-semibold text-sm bg-red-500 w-full md:w-80 lg:w-96 rounded-sm mt-2.5 p-1.5 text-white">
                 {emailerr}
               </p>
             )}
           </div>
-          <div className="relative mt-16 w-96">
+          <div className="relative mt-10 md:mt-16 w-full lg:w-96">
             <input
               type="text"
-              className="border border-solid border-secondary w-96 py-6 px-14 rounded-lg"
+              className="border border-solid border-secondary w-full md:w-80 lg:w-96 py-6 px-14 rounded-lg"
               onChange={handleFullName}
               value={fullname}
             />
@@ -129,15 +129,15 @@ const Registration = () => {
               Full Name
             </p>
             {fullnameerr && (
-              <p className="font-nunito font-semibold text-sm bg-red-500 w-96 rounded-sm mt-2.5 p-1.5 text-white">
+              <p className="font-nunito font-semibold text-sm bg-red-500 w-full md:w-80 md:w-96 rounded-sm mt-2.5 p-1.5 text-white">
                 {fullnameerr}
               </p>
             )}
           </div>
-          <div className="relative mt-16 w-96">
+          <div className="relative mt-10 md:mt-16 w-full md:w-80 lg:w-96">
             <input
               type={passwordShow ? "text" : "password"}
-              className="border border-solid border-secondary w-96 py-6 px-14 rounded-lg"
+              className="border border-solid border-secondary w-full md:w-80 lg:w-96 py-6 px-14 rounded-lg"
               onChange={handlePassword}
               value={password}
             />
@@ -156,14 +156,14 @@ const Registration = () => {
               Password
             </p>
             {passworderr && (
-              <p className="font-nunito font-semibold text-sm bg-red-500 w-96 rounded-sm mt-2.5 p-1.5 text-white">
+              <p className="font-nunito font-semibold text-sm bg-red-500 w-full md:w-80 lg:w-96 rounded-sm mt-2.5 p-1.5 text-white">
                 {passworderr}
               </p>
             )}
           </div>
 
           {loading ? (
-            <div className="flex justify-center w-96">
+            <div className="flex justify-center w-full md:w-80 lg:w-96">
               <BallTriangle
                 height={100}
                 width={100}
@@ -178,13 +178,13 @@ const Registration = () => {
           ) : (
             <button
               onClick={handleSubmit}
-              className="w-96 bg-primary rounded-full font-nunito font-semibold text-xl text-white py-5 mt-16"
+              className="w-full md:w-80 lg:w-96 bg-primary rounded-full font-nunito font-semibold text-xl text-white py-5 mt-10 md:mt-16"
             >
               Sign up
             </button>
           )}
 
-          <p className="text-center font-open w-96 font-regular text-sm text-heading mt-9">
+          <p className="text-center font-open w-full md:w-80 lg:w-96 font-regular text-sm text-heading mt-9">
             Already have an account ?{" "}
             <Link to="/login" className="font-bold text-[#EA6C00]">
               Sign In
@@ -192,9 +192,9 @@ const Registration = () => {
           </p>
         </div>
       </div>
-      <div className="w-2/4">
+      <div className="w-2/4 hidden md:block">
         <img
-          className="w-full h-screen object-cover"
+          className="w-full h-full md:h-screen  object-cover"
           src="images/registration.png"
         />
       </div>
