@@ -9,11 +9,14 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import { BallTriangle } from "react-loader-spinner";
 import { Link, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { userLoginInfo } from "../../slices/userSlice";
 
 const Login = () => {
   const auth = getAuth();
   const provider = new GoogleAuthProvider();
   let navigate = useNavigate();
+  const dispatch = useDispatch();
   let [email, setEmail] = useState("");
   let [password, setPassword] = useState("");
 
@@ -53,9 +56,11 @@ const Login = () => {
     ) {
       setLoading(true);
       signInWithEmailAndPassword(auth, email, password)
-        .then(() => {
+        .then((user) => {
           setLoading(false);
           toast.success("Login Successfull. Wait for redirection");
+          dispatch(userLoginInfo(user.user));
+          localStorage.setItem("userInfo", JSON.stringify(user));
           setTimeout(() => {
             navigate("/");
           }, 2000);

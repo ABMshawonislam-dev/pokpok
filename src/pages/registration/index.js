@@ -4,6 +4,7 @@ import {
   getAuth,
   createUserWithEmailAndPassword,
   sendEmailVerification,
+  updateProfile,
 } from "firebase/auth";
 import { ToastContainer, toast } from "react-toastify";
 import { BallTriangle } from "react-loader-spinner";
@@ -63,16 +64,28 @@ const Registration = () => {
     ) {
       setLoading(true);
       createUserWithEmailAndPassword(auth, email, password)
-        .then(() => {
-          toast.success("Registration Successfull. Please varify your email");
-          setEmail("");
-          setFullname("");
-          setPassword("");
-          sendEmailVerification(auth.currentUser);
-          setLoading(false);
-          setTimeout(() => {
-            navigate("/login");
-          }, 2000);
+        .then((user) => {
+          updateProfile(auth.currentUser, {
+            displayName: fullname,
+            photoURL: "images/demoprofile.png",
+          })
+            .then(() => {
+              toast.success(
+                "Registration Successfull. Please varify your email"
+              );
+              console.log(user);
+              setEmail("");
+              setFullname("");
+              setPassword("");
+              sendEmailVerification(auth.currentUser);
+              setLoading(false);
+              setTimeout(() => {
+                navigate("/login");
+              }, 2000);
+            })
+            .catch((error) => {
+              console.log(error);
+            });
         })
         .catch((error) => {
           if (error.code.includes("auth/email-already-in-use")) {
