@@ -9,8 +9,11 @@ import {
 import { ToastContainer, toast } from "react-toastify";
 import { BallTriangle } from "react-loader-spinner";
 import { Link, useNavigate } from "react-router-dom";
+import { getDatabase, ref, set } from "firebase/database";
 
 const Registration = () => {
+  const db = getDatabase();
+
   const auth = getAuth();
   let navigate = useNavigate();
   let [email, setEmail] = useState("");
@@ -67,7 +70,7 @@ const Registration = () => {
         .then((user) => {
           updateProfile(auth.currentUser, {
             displayName: fullname,
-            photoURL: "images/demoprofile.png",
+            photoURL: "images/demoimg.png",
           })
             .then(() => {
               toast.success(
@@ -82,6 +85,12 @@ const Registration = () => {
               setTimeout(() => {
                 navigate("/login");
               }, 2000);
+            })
+            .then(() => {
+              set(ref(db, "users/" + user.user.uid), {
+                username: user.user.displayName,
+                email: user.user.email,
+              });
             })
             .catch((error) => {
               console.log(error);
