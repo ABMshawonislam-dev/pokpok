@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { getDatabase, ref, onValue } from "firebase/database";
+import { getDatabase, ref, onValue, set, push } from "firebase/database";
 import { useSelector } from "react-redux";
 const Userlist = () => {
   const db = getDatabase();
@@ -9,6 +9,8 @@ const Userlist = () => {
   console.log(data.uid);
 
   let [userlist, setUserlist] = useState([]);
+  let [friendrequestlist, setFriendrequestlist] = useState([]);
+  let [friendlist, setFriendlist] = useState([]);
 
   useEffect(() => {
     const userRef = ref(db, "users");
@@ -16,10 +18,42 @@ const Userlist = () => {
       let arr = [];
       snapshot.forEach((item) => {
         if (data.uid != item.key) {
-          arr.push(item.val());
+          arr.push({ ...item.val(), userid: item.key });
         }
       });
       setUserlist(arr);
+    });
+  }, []);
+
+  let handleFriendRequest = (item) => {
+    console.log(item);
+    set(push(ref(db, "firendrequest")), {
+      sendername: data.displayName,
+      senderid: data.uid,
+      recievername: item.username,
+      recieverid: item.userid,
+    });
+  };
+
+  useEffect(() => {
+    const firendrequestRef = ref(db, "firendrequest");
+    onValue(firendrequestRef, (snapshot) => {
+      let arr = [];
+      snapshot.forEach((item) => {
+        arr.push(item.val().recieverid + item.val().senderid);
+      });
+      setFriendrequestlist(arr);
+    });
+  }, []);
+
+  useEffect(() => {
+    const firendRef = ref(db, "friend");
+    onValue(firendRef, (snapshot) => {
+      let arr = [];
+      snapshot.forEach((item) => {
+        arr.push(item.val().recieverid + item.val().senderid);
+      });
+      setFriendlist(arr);
     });
   }, []);
 
@@ -40,13 +74,28 @@ const Userlist = () => {
           <div>
             <h3 className="font-nunito font-bold text-xl">{item.username} </h3>
             <p className="font-nunito font-bold text-sm text-[#4D4D4D]">
-              {item.email}
+              {item.userid}
             </p>
           </div>
           <div>
-            <button className="font-nunito font-bold text-xl bg-primary text-white py-2.5 px-5 rounded">
-              +
-            </button>
+            {friendlist.includes(item.userid + data.uid) ||
+            friendlist.includes(data.uid + item.userid) ? (
+              <button className="font-nunito font-bold text-xl bg-primary text-white py-2.5 px-5 rounded">
+                F
+              </button>
+            ) : friendrequestlist.includes(item.userid + data.uid) ||
+              friendrequestlist.includes(data.uid + item.userid) ? (
+              <button className="font-nunito font-bold text-xl bg-primary text-white py-2.5 px-5 rounded">
+                P
+              </button>
+            ) : (
+              <button
+                onClick={() => handleFriendRequest(item)}
+                className="font-nunito font-bold text-xl bg-primary text-white py-2.5 px-5 rounded"
+              >
+                +
+              </button>
+            )}
           </div>
         </div>
       ))}
