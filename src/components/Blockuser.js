@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
-import { getDatabase, ref, onValue } from "firebase/database";
 import { useSelector } from "react-redux";
+import {
+  getDatabase,
+  ref,
+  onValue,
+  set,
+  push,
+  remove,
+} from "firebase/database";
 const Blockuser = () => {
   const db = getDatabase();
   let data = useSelector((state) => state.userLoginInfo.userInfo);
@@ -31,6 +38,19 @@ const Blockuser = () => {
     });
   }, []);
 
+  let handleUnblock = (item) => {
+    set(push(ref(db, "friend")), {
+      sendername: item.block,
+      senderid: item.blockid,
+      recieverid: data.uid,
+      recievername: data.displayName,
+    }).then(() => {
+      remove(ref(db, "block/" + item.id)).then(() => {
+        console.log("delketed");
+      });
+    });
+  };
+
   return (
     <div className="w-full bg-white shadow-lg rounded-lg py-3 px-5 mt-11 h-[346px] overflow-y-scroll">
       <div className="relative">
@@ -54,7 +74,10 @@ const Blockuser = () => {
           </div>
           <div>
             {!item.blockbyid && (
-              <button className="font-nunito font-bold text-xl bg-primary text-white py-2.5 px-5 rounded">
+              <button
+                onClick={() => handleUnblock(item)}
+                className="font-nunito font-bold text-xl bg-primary text-white py-2.5 px-5 rounded"
+              >
                 Unb
               </button>
             )}
