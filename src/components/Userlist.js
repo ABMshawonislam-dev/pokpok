@@ -74,7 +74,7 @@ const Userlist = () => {
           <div>
             <h3 className="font-nunito font-bold text-xl">{item.username} </h3>
             <p className="font-nunito font-bold text-sm text-[#4D4D4D]">
-              {item.userid}
+              {item.email}
             </p>
           </div>
           <div>
