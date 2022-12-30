@@ -37,7 +37,7 @@ const Home = () => {
       {verify ? (
         <>
           <div className="w-[186px] pl-2.5">
-            <Sidebar />
+            <Sidebar active="home" />
           </div>
           <div className="w-[427px]">
             <Seacrh />

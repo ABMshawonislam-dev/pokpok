@@ -5,7 +5,7 @@ import { IoMdNotificationsOutline } from "react-icons/io";
 import { MdCloudUpload } from "react-icons/md";
 import { FiLogOut } from "react-icons/fi";
 import { getAuth, signOut, updateProfile } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { userLoginInfo } from "../slices/userSlice";
 import Cropper from "react-cropper";
@@ -16,7 +16,7 @@ import {
   uploadString,
   getDownloadURL,
 } from "firebase/storage";
-const Sidebar = () => {
+const Sidebar = ({ active }) => {
   const auth = getAuth();
   const storage = getStorage();
   let dispatch = useDispatch();
@@ -108,11 +108,31 @@ const Sidebar = () => {
       <h2 className="font-nunito text-white text-center font-bold text-xl mt-5">
         {data.displayName}
       </h2>
-      <div className="mt-24 relative z-[1] after:z-[-1] after:bg-white after:w-[135%] after:h-[89px] after:content-[''] after:absolute after:top-[-16px] after:left-0 after:rounded-tl-lg after:rounded-bl-lg before:w-[8px] before:h-[185%] before:bg-primary before:absolute before:top-[-16px] before:right-[-36px] before:content-[''] before:rounded-tl-lg before:rounded-bl-lg">
-        <AiOutlineHome className="text-5xl text-[#5F35F5] mx-auto" />
+      <div
+        className={`mt-24 relative z-[1] after:z-[-1] ${
+          active == "home" && "after:bg-white"
+        }  after:w-[135%] after:h-[89px] after:content-[''] after:absolute after:top-[-16px] after:left-0 after:rounded-tl-lg after:rounded-bl-lg before:w-[8px] before:h-[185%] before:bg-primary before:absolute before:top-[-16px] before:right-[-36px] before:content-[''] before:rounded-tl-lg before:rounded-bl-lg`}
+      >
+        <Link to="/">
+          <AiOutlineHome
+            className={`text-5xl ${
+              active == "home" ? "text-[#5F35F5]" : "text-[#BAD1FF]"
+            } mx-auto`}
+          />
+        </Link>
       </div>
-      <div className="mt-24 relative z-[1] after:z-[-1] after:bg-none after:w-[135%] after:h-[89px] after:content-[''] after:absolute after:top-[-16px] after:left-0 after:rounded-tl-lg after:rounded-bl-lg before:w-[8px] before:h-[185%] before:bg-none before:absolute before:top-[-16px] before:right-[-36px] before:content-[''] before:rounded-tl-lg before:rounded-bl-lg">
-        <RiMessage2Fill className="text-5xl text-[#BAD1FF] mx-auto" />
+      <div
+        className={`mt-24 relative z-[1] after:z-[-1] ${
+          active == "msg" && "after:bg-white"
+        }  after:w-[135%] after:h-[89px] after:content-[''] after:absolute after:top-[-16px] after:left-0 after:rounded-tl-lg after:rounded-bl-lg before:w-[8px] before:h-[185%] before:bg-primary before:absolute before:top-[-16px] before:right-[-36px] before:content-[''] before:rounded-tl-lg before:rounded-bl-lg`}
+      >
+        <Link to="/message">
+          <RiMessage2Fill
+            className={`text-5xl ${
+              active == "msg" ? "text-[#5F35F5]" : "text-[#BAD1FF]"
+            } mx-auto`}
+          />
+        </Link>
       </div>
       <div className="mt-24 relative z-[1] after:z-[-1] after:bg-none after:w-[135%] after:h-[89px] after:content-[''] after:absolute after:top-[-16px] after:left-0 after:rounded-tl-lg after:rounded-bl-lg before:w-[8px] before:h-[185%] before:bg-none before:absolute before:top-[-16px] before:right-[-36px] before:content-[''] before:rounded-tl-lg before:rounded-bl-lg">
         <IoMdNotificationsOutline className="text-5xl text-[#BAD1FF] mx-auto" />
