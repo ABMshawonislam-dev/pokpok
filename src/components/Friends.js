@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
+
 import {
   getDatabase,
   ref,
@@ -8,10 +9,14 @@ import {
   remove,
   push,
 } from "firebase/database";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+
+import { activeChat } from "../slices/activeChatSlice";
+
 const Friends = () => {
   const db = getDatabase();
   let data = useSelector((state) => state.userLoginInfo.userInfo);
+  let dispatch = useDispatch();
 
   console.log(data.uid);
 
@@ -59,6 +64,26 @@ const Friends = () => {
     }
   };
 
+  let handleActiveSingle = (item) => {
+    if (item.recieverid == data.uid) {
+      dispatch(
+        activeChat({
+          status: "single",
+          id: item.senderid,
+          name: item.sendername,
+        })
+      );
+    } else {
+      dispatch(
+        activeChat({
+          status: "single",
+          id: item.recieverid,
+          name: item.recievername,
+        })
+      );
+    }
+  };
+
   return (
     <div className="w-full bg-white shadow-lg rounded-lg py-3 px-5 mt-11 h-[346px] overflow-y-scroll">
       <div className="relative">
@@ -66,7 +91,10 @@ const Friends = () => {
         <BsThreeDotsVertical className="absolute top-[6px] right-[6px] text-primary" />
       </div>
       {friends.map((item) => (
-        <div className="flex gap-x-5 items-center border-b border-solid border-primary pb-3.5 mt-3.5">
+        <div
+          onClick={() => handleActiveSingle(item)}
+          className="flex gap-x-5 items-center border-b border-solid border-primary pb-3.5 mt-3.5"
+        >
           <div>
             <img
               className="w-[70px] h-[70px] rounded-full"
