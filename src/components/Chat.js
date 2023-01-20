@@ -21,8 +21,13 @@ import {
   uploadBytesResumable,
   getDownloadURL,
   uploadString,
+  uploadBytes,
 } from "firebase/storage";
 import moment from "moment";
+import { AudioRecorder } from "react-audio-voice-recorder";
+import EmojiPicker from "emoji-picker-react";
+import { BsFillEmojiSmileFill } from "react-icons/bs";
+
 const Chat = () => {
   let db = getDatabase();
   const storage = getStorage();
@@ -31,6 +36,9 @@ const Chat = () => {
   let [captureImage, setCaptureImage] = useState("");
   let [msg, setMsg] = useState("");
   let [msglist, setMsglist] = useState([]);
+  let [audiourl, setAudioUrl] = useState("");
+  let [blob, setBlob] = useState("");
+  let [showemoji, setShowEmoji] = useState(false);
 
   let activeChatName = useSelector((state) => state.activeChat);
   console.log(activeChatName.active.name);
@@ -128,6 +136,39 @@ const Chat = () => {
     );
   };
 
+  const addAudioElement = (blob) => {
+    const url = URL.createObjectURL(blob);
+    setAudioUrl(url);
+    setBlob(blob);
+  };
+
+  let handleAudioUpload = () => {
+    const audioStorageRef = sref(storage, audiourl);
+
+    // 'file' comes from the Blob or File API
+    uploadBytes(audioStorageRef, blob).then((snapshot) => {
+      getDownloadURL(audioStorageRef).then((downloadURL) => {
+        set(push(ref(db, "singlemsg")), {
+          whosendid: data.uid,
+          whosendname: data.displayName,
+          whoreceiveid: activeChatName.active.id,
+          whoreceivename: activeChatName.active.name,
+          audio: downloadURL,
+          date: `${new Date().getFullYear()}-${
+            new Date().getMonth() + 1
+          }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+        }).then(() => {
+          setAudioUrl("");
+        });
+      });
+    });
+  };
+
+  let handelEmojiSelect = (emoji) => {
+    console.log("ami emoji", emoji.`emoji`);
+    setMsg(msg + emoji.emoji);
+  };
+
   return (
     <div className="bg-white shadow-lg rounded-xl py-6 px-12">
       <div className="flex items-center gap-x-8  border-b border-solid border-[rgba(0,0,0,.25)] pb-6 mb-14">
@@ -159,7 +200,7 @@ const Chat = () => {
                       {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                     </p>
                   </div>
-                ) : (
+                ) : item.img ? (
                   <div className="mb-8 text-right">
                     <div className="bg-primary inline-block w-60 p-3 rounded-md relative mr-5">
                       <ModalImage small={item.img} large={item.img} />
@@ -167,6 +208,15 @@ const Chat = () => {
                     </div>
                     <p className="font-pop font-medium text-sm text-[rgba(0,0,0,.25)] mr-5">
                       {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="mb-8 text-right">
+                    <div className="inline-block mr-5">
+                      <audio controls src={item.audio}></audio>
+                    </div>
+                    <p className="font-pop font-medium text-sm text-[rgba(0,0,0,.25)] mr-5">
+                      Today, 2:01pm
                     </p>
                   </div>
                 )
@@ -180,7 +230,7 @@ const Chat = () => {
                     {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
                   </p>
                 </div>
-              ) : (
+              ) : item.img ? (
                 <div className="mb-8">
                   <div className="bg-[#f1f1f1] inline-block w-60 p-3 rounded-md relative ml-5">
                     <ModalImage small={item.img} large={item.img} />
@@ -188,6 +238,15 @@ const Chat = () => {
                   </div>
                   <p className="font-pop font-medium text-sm text-[rgba(0,0,0,.25)] ml-5">
                     {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                  </p>
+                </div>
+              ) : (
+                <div className="mb-8">
+                  <div className="inline-block mr-5">
+                    <audio controls src={item.audio}></audio>
+                  </div>
+                  <p className="font-pop font-medium text-sm text-[rgba(0,0,0,.25)] ml-5">
+                    Today, 2:01pm
                   </p>
                 </div>
               )
@@ -294,23 +353,58 @@ const Chat = () => {
         </div>
         <div className="flex mt-3 gap-x-3">
           <div className="w-[85%] relative">
-            <input
-              onChange={(e) => setMsg(e.target.value)}
-              className="bg-[#f1f1f1] p-3 w-full rounded-lg"
-            />
-            <label>
-              <input
-                onChange={handleImageUpload}
-                className="hidden"
-                type="file"
-              />
-              <GrGallery className="absolute top-4 right-2" />
-            </label>
-            <BsFillCameraFill
-              onClick={() => setCheck(!check)}
-              className="absolute top-4 right-8"
-            />
-            <BsFillMicFill className="absolute top-4 right-14" />
+            {!audiourl && (
+              <>
+                <input
+                  onChange={(e) => setMsg(e.target.value)}
+                  className="bg-[#f1f1f1] p-3 w-full rounded-lg"
+                  value={msg}
+                />
+                <label>
+                  <input
+                    onChange={handleImageUpload}
+                    className="hidden"
+                    type="file"
+                  />
+                  <GrGallery className="absolute top-4 right-2" />
+                </label>
+                <BsFillCameraFill
+                  onClick={() => setCheck(!check)}
+                  className="absolute top-4 right-8"
+                />
+                <AudioRecorder
+                  onRecordingComplete={(blob) => addAudioElement(blob)}
+                />
+                <BsFillEmojiSmileFill
+                  onClick={() => setShowEmoji(!showemoji)}
+                  className="absolute top-4 right-20"
+                />
+                {showemoji && (
+                  <div className="absolute top-[-450px] right-0">
+                    <EmojiPicker
+                      onEmojiClick={(emoji) => handelEmojiSelect(emoji)}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+            {audiourl && (
+              <div className=" flex gap-x-2.5">
+                <audio controls src={audiourl}></audio>
+                <button
+                  className="bg-primary p-3 rounded-md text-white"
+                  onClick={() => setAudioUrl("")}
+                >
+                  Delete
+                </button>
+                <button
+                  onClick={handleAudioUpload}
+                  className="bg-primary p-3 rounded-md text-white"
+                >
+                  Send
+                </button>
+              </div>
+            )}
           </div>
           {check && (
             <div className="w-full h-screen absolute top-0 left-0 bg-[rgba(0,0,0,.9)] z-50 flex justify-center items-center">
@@ -335,12 +429,14 @@ const Chat = () => {
               />
             </div>
           )}
-          <button
-            onClick={handleMsgSend}
-            className="bg-primary p-3 rounded-md text-white"
-          >
-            Send
-          </button>
+          {!audiourl && (
+            <button
+              onClick={handleMsgSend}
+              className="bg-primary p-3 rounded-md text-white"
+            >
+              Send
+            </button>
+          )}
         </div>
       </div>
     </div>
