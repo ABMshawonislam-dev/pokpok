@@ -165,7 +165,7 @@ const Chat = () => {
   };
 
   let handelEmojiSelect = (emoji) => {
-    console.log("ami emoji", emoji.`emoji`);
+    console.log("ami emoji", emoji.emoji);
     setMsg(msg + emoji.emoji);
   };
 
