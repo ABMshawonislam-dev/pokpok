@@ -8,9 +8,12 @@ import {
   push,
   remove,
 } from "firebase/database";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { activeChat } from "../slices/activeChatSlice";
+
 const MsgGroups = () => {
   const db = getDatabase();
+  let dispatch = useDispatch();
 
   let [show, setShow] = useState(false);
   let [gname, setGname] = useState("");
@@ -47,6 +50,17 @@ const MsgGroups = () => {
     });
   }, []);
 
+  let handleActiveChat = (item) => {
+    dispatch(
+      activeChat({
+        status: "group",
+        id: item.key,
+        name: item.groupname,
+        adminid: item.adminid,
+      })
+    );
+  };
+
   return (
     <div className="w-full bg-white shadow-lg rounded-lg py-3 px-5 mt-11 h-[346px] overflow-y-scroll">
       <div className="relative">
@@ -54,7 +68,10 @@ const MsgGroups = () => {
       </div>
 
       {grouplist.map((item) => (
-        <div className="flex gap-x-5 items-center border-b border-solid border-primary pb-3.5 mt-3.5">
+        <div
+          onClick={() => handleActiveChat(item)}
+          className="flex gap-x-5 items-center border-b border-solid border-primary pb-3.5 mt-3.5"
+        >
           <div>
             <img
               className="w-[70px] h-[70px] rounded-full"

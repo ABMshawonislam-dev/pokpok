@@ -27,6 +27,7 @@ import moment from "moment";
 import { AudioRecorder } from "react-audio-voice-recorder";
 import EmojiPicker from "emoji-picker-react";
 import { BsFillEmojiSmileFill } from "react-icons/bs";
+import ScrollToBottom from "react-scroll-to-bottom";
 
 const Chat = () => {
   let db = getDatabase();
@@ -36,6 +37,8 @@ const Chat = () => {
   let [captureImage, setCaptureImage] = useState("");
   let [msg, setMsg] = useState("");
   let [msglist, setMsglist] = useState([]);
+  let [gmsglist, setGmsglist] = useState([]);
+  let [groupmemberslist, setGroupmemberslist] = useState([]);
   let [audiourl, setAudioUrl] = useState("");
   let [blob, setBlob] = useState("");
   let [showemoji, setShowEmoji] = useState(false);
@@ -80,6 +83,17 @@ const Chat = () => {
       });
     } else {
       console.log("ami group msg");
+      set(push(ref(db, "groupmsg")), {
+        whosendid: data.uid,
+        whosendname: data.displayName,
+        whoreceiveid: activeChatName.active.id,
+        whoreceivename: activeChatName.active.name,
+        adminid: activeChatName.active.adminid,
+        msg: msg,
+        date: `${new Date().getFullYear()}-${
+          new Date().getMonth() + 1
+        }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+      });
     }
   };
 
@@ -99,6 +113,26 @@ const Chat = () => {
       setMsglist(arr);
     });
   }, [activeChatName.active.id]);
+  // group msg
+  useEffect(() => {
+    onValue(ref(db, "groupmsg"), (snapshot) => {
+      let arr = [];
+      snapshot.forEach((item) => {
+        arr.push(item.val());
+      });
+      setGmsglist(arr);
+    });
+  }, [activeChatName.active.id]);
+
+  useEffect(() => {
+    onValue(ref(db, "groupmembers"), (snapshot) => {
+      let arr = [];
+      snapshot.forEach((item) => {
+        arr.push(item.val().groupid + item.val().userid);
+      });
+      setGroupmemberslist(arr);
+    });
+  }, []);
 
   let handleImageUpload = (e) => {
     console.log(e.target.files[0]);
@@ -169,6 +203,64 @@ const Chat = () => {
     setMsg(msg + emoji.emoji);
   };
 
+  let handleEnterPress = (e) => {
+    if (e.key == "Enter") {
+      if (activeChatName.active.status == "single") {
+        set(push(ref(db, "singlemsg")), {
+          whosendid: data.uid,
+          whosendname: data.displayName,
+          whoreceiveid: activeChatName.active.id,
+          whoreceivename: activeChatName.active.name,
+          msg: msg,
+          date: `${new Date().getFullYear()}-${
+            new Date().getMonth() + 1
+          }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+        });
+      } else {
+        console.log("ami group msg");
+        set(push(ref(db, "groupmsg")), {
+          whosendid: data.uid,
+          whosendname: data.displayName,
+          whoreceiveid: activeChatName.active.id,
+          whoreceivename: activeChatName.active.name,
+          adminid: activeChatName.active.adminid,
+          msg: msg,
+          date: `${new Date().getFullYear()}-${
+            new Date().getMonth() + 1
+          }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+        });
+      }
+    }
+  };
+
+  let handleLikeSend = () => {
+    if (activeChatName.active.status == "single") {
+      set(push(ref(db, "singlemsg")), {
+        whosendid: data.uid,
+        whosendname: data.displayName,
+        whoreceiveid: activeChatName.active.id,
+        whoreceivename: activeChatName.active.name,
+        msg: "&#128077;",
+        date: `${new Date().getFullYear()}-${
+          new Date().getMonth() + 1
+        }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+      });
+    } else {
+      console.log("ami group msg");
+      set(push(ref(db, "groupmsg")), {
+        whosendid: data.uid,
+        whosendname: data.displayName,
+        whoreceiveid: activeChatName.active.id,
+        whoreceivename: activeChatName.active.name,
+        adminid: activeChatName.active.adminid,
+        msg: "&#128077;",
+        date: `${new Date().getFullYear()}-${
+          new Date().getMonth() + 1
+        }-${new Date().getDate()} ${new Date().getHours()}:${new Date().getMinutes()}`,
+      });
+    }
+  };
+
   return (
     <div className="bg-white shadow-lg rounded-xl py-6 px-12">
       <div className="flex items-center gap-x-8  border-b border-solid border-[rgba(0,0,0,.25)] pb-6 mb-14">
@@ -180,20 +272,24 @@ const Chat = () => {
           <h3 className="font-pop font-semibold text-2xl">
             {activeChatName.active.name}
           </h3>
+
           <p className="font-pop font-regular text-sm">Online</p>
         </div>
       </div>
       <div>
-        <div className="overflow-y-scroll h-[400px] border-b border-solid border-[#f1f1f1]">
+        <ScrollToBottom className=" h-[400px] border-b border-solid border-[#f1f1f1]">
           {activeChatName.active.status == "single" ? (
             msglist.map((item) =>
               item.whosendid == data.uid ? (
                 item.msg ? (
                   <div className="mb-8 text-right">
                     <div className="bg-primary inline-block py-3 px-12 rounded-md relative mr-5">
-                      <p className="font-pop font-medium text-base text-white text-left">
-                        {item.msg}
-                      </p>
+                      <p
+                        dangerouslySetInnerHTML={{
+                          __html: item.msg,
+                        }}
+                        className="font-pop font-medium text-base text-white text-left"
+                      ></p>
                       <BsTriangleFill className="text-2xl absolute bottom-[-2px] right-[-7px] text-primary" />
                     </div>
                     <p className="font-pop font-medium text-sm text-[rgba(0,0,0,.25)] mr-5">
@@ -251,8 +347,39 @@ const Chat = () => {
                 </div>
               )
             )
+          ) : data.uid == activeChatName.active.adminid ||
+            groupmemberslist.includes(activeChatName.active.id + data.uid) ? (
+            gmsglist.map((item) =>
+              item.whosendid == data.uid
+                ? item.whoreceiveid == activeChatName.active.id && (
+                    <div className="mb-8 text-right">
+                      <div className="bg-primary inline-block py-3 px-12 rounded-md relative mr-5">
+                        <p className="font-pop font-medium text-base text-white text-left">
+                          {item.msg}
+                        </p>
+                        <BsTriangleFill className="text-2xl absolute bottom-[-2px] right-[-7px] text-primary" />
+                      </div>
+                      <p className="font-pop font-medium text-sm text-[rgba(0,0,0,.25)] mr-5">
+                        {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                      </p>
+                    </div>
+                  )
+                : item.whoreceiveid == activeChatName.active.id && (
+                    <div className="mb-8">
+                      <div className="bg-[#f1f1f1] inline-block py-3 px-12 rounded-md relative ml-5">
+                        <p className="font-pop font-medium font-base">
+                          {item.msg}
+                        </p>
+                        <BsTriangleFill className="text-2xl absolute bottom-[-2px] left-[-7px] text-[#f1f1f1]" />
+                      </div>
+                      <p className="font-pop font-medium text-sm text-[rgba(0,0,0,.25)] ml-5">
+                        {moment(item.date, "YYYYMMDD hh:mm").fromNow()}
+                      </p>
+                    </div>
+                  )
+            )
           ) : (
-            <h1>ami group msg</h1>
+            <h1>Not Member in this group</h1>
           )}
           {/* received msg start */}
           {/* <div className="mb-8">
@@ -350,94 +477,205 @@ const Chat = () => {
             </p>
           </div> */}
           {/* received img end */}
-        </div>
-        <div className="flex mt-3 gap-x-3">
-          <div className="w-[85%] relative">
-            {!audiourl && (
-              <>
-                <input
-                  onChange={(e) => setMsg(e.target.value)}
-                  className="bg-[#f1f1f1] p-3 w-full rounded-lg"
-                  value={msg}
-                />
-                <label>
+        </ScrollToBottom>
+        {activeChatName.active.status == "single" ? (
+          <div className="flex mt-3 gap-x-3">
+            <div className="w-[85%] relative">
+              {!audiourl && (
+                <>
                   <input
-                    onChange={handleImageUpload}
-                    className="hidden"
-                    type="file"
+                    onChange={(e) => setMsg(e.target.value)}
+                    onKeyUp={handleEnterPress}
+                    className="bg-[#f1f1f1] p-3 w-full rounded-lg"
+                    value={msg}
                   />
-                  <GrGallery className="absolute top-4 right-2" />
-                </label>
-                <BsFillCameraFill
-                  onClick={() => setCheck(!check)}
-                  className="absolute top-4 right-8"
-                />
-                <AudioRecorder
-                  onRecordingComplete={(blob) => addAudioElement(blob)}
-                />
-                <BsFillEmojiSmileFill
-                  onClick={() => setShowEmoji(!showemoji)}
-                  className="absolute top-4 right-20"
-                />
-                {showemoji && (
-                  <div className="absolute top-[-450px] right-0">
-                    <EmojiPicker
-                      onEmojiClick={(emoji) => handelEmojiSelect(emoji)}
+                  <label>
+                    <input
+                      onChange={handleImageUpload}
+                      className="hidden"
+                      type="file"
                     />
-                  </div>
-                )}
-              </>
+                    <GrGallery className="absolute top-4 right-2" />
+                  </label>
+                  <BsFillCameraFill
+                    onClick={() => setCheck(!check)}
+                    className="absolute top-4 right-8"
+                  />
+                  <AudioRecorder
+                    onRecordingComplete={(blob) => addAudioElement(blob)}
+                  />
+                  <BsFillEmojiSmileFill
+                    onClick={() => setShowEmoji(!showemoji)}
+                    className="absolute top-4 right-20"
+                  />
+                  {showemoji && (
+                    <div className="absolute top-[-450px] right-0">
+                      <EmojiPicker
+                        onEmojiClick={(emoji) => handelEmojiSelect(emoji)}
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+              {audiourl && (
+                <div className=" flex gap-x-2.5">
+                  <audio controls src={audiourl}></audio>
+                  <button
+                    className="bg-primary p-3 rounded-md text-white"
+                    onClick={() => setAudioUrl("")}
+                  >
+                    Delete
+                  </button>
+                  <button
+                    onClick={handleAudioUpload}
+                    className="bg-primary p-3 rounded-md text-white"
+                  >
+                    Send
+                  </button>
+                </div>
+              )}
+            </div>
+            {check && (
+              <div className="w-full h-screen absolute top-0 left-0 bg-[rgba(0,0,0,.9)] z-50 flex justify-center items-center">
+                <AiFillCloseCircle
+                  onClick={() => setCheck(false)}
+                  className="text-white"
+                />
+                <Camera
+                  onTakePhoto={(dataUri) => {
+                    handleTakePhoto(dataUri);
+                  }}
+                  idealFacingMode={FACING_MODES.ENVIRONMENT}
+                  idealResolution={{ width: 640, height: 480 }}
+                  imageType={IMAGE_TYPES.JPG}
+                  imageCompression={0.97}
+                  isMaxResolution={true}
+                  isImageMirror={true}
+                  isSilentMode={false}
+                  isDisplayStartCameraError={false}
+                  isFullscreen={true}
+                  sizeFactor={1}
+                />
+              </div>
             )}
-            {audiourl && (
-              <div className=" flex gap-x-2.5">
-                <audio controls src={audiourl}></audio>
+            {!audiourl &&
+              (msg != "" ? (
                 <button
-                  className="bg-primary p-3 rounded-md text-white"
-                  onClick={() => setAudioUrl("")}
-                >
-                  Delete
-                </button>
-                <button
-                  onClick={handleAudioUpload}
+                  onClick={handleMsgSend}
                   className="bg-primary p-3 rounded-md text-white"
                 >
                   Send
                 </button>
-              </div>
-            )}
+              ) : (
+                <button
+                  onClick={handleLikeSend}
+                  className="bg-primary p-3 rounded-md text-white"
+                >
+                  &#128077;
+                </button>
+              ))}
           </div>
-          {check && (
-            <div className="w-full h-screen absolute top-0 left-0 bg-[rgba(0,0,0,.9)] z-50 flex justify-center items-center">
-              <AiFillCloseCircle
-                onClick={() => setCheck(false)}
-                className="text-white"
-              />
-              <Camera
-                onTakePhoto={(dataUri) => {
-                  handleTakePhoto(dataUri);
-                }}
-                idealFacingMode={FACING_MODES.ENVIRONMENT}
-                idealResolution={{ width: 640, height: 480 }}
-                imageType={IMAGE_TYPES.JPG}
-                imageCompression={0.97}
-                isMaxResolution={true}
-                isImageMirror={true}
-                isSilentMode={false}
-                isDisplayStartCameraError={false}
-                isFullscreen={true}
-                sizeFactor={1}
-              />
+        ) : (
+          data.uid == activeChatName.active.adminid ||
+          (groupmemberslist.includes(activeChatName.active.id + data.uid) && (
+            <div className="flex mt-3 gap-x-3">
+              <div className="w-[85%] relative">
+                {!audiourl && (
+                  <>
+                    <input
+                      onChange={(e) => setMsg(e.target.value)}
+                      onKeyUp={handleEnterPress}
+                      className="bg-[#f1f1f1] p-3 w-full rounded-lg"
+                      value={msg}
+                    />
+                    <label>
+                      <input
+                        onChange={handleImageUpload}
+                        className="hidden"
+                        type="file"
+                      />
+                      <GrGallery className="absolute top-4 right-2" />
+                    </label>
+                    <BsFillCameraFill
+                      onClick={() => setCheck(!check)}
+                      className="absolute top-4 right-8"
+                    />
+                    <AudioRecorder
+                      onRecordingComplete={(blob) => addAudioElement(blob)}
+                    />
+                    <BsFillEmojiSmileFill
+                      onClick={() => setShowEmoji(!showemoji)}
+                      className="absolute top-4 right-20"
+                    />
+                    {showemoji && (
+                      <div className="absolute top-[-450px] right-0">
+                        <EmojiPicker
+                          onEmojiClick={(emoji) => handelEmojiSelect(emoji)}
+                        />
+                      </div>
+                    )}
+                  </>
+                )}
+                {audiourl && (
+                  <div className=" flex gap-x-2.5">
+                    <audio controls src={audiourl}></audio>
+                    <button
+                      className="bg-primary p-3 rounded-md text-white"
+                      onClick={() => setAudioUrl("")}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={handleAudioUpload}
+                      className="bg-primary p-3 rounded-md text-white"
+                    >
+                      Send
+                    </button>
+                  </div>
+                )}
+              </div>
+              {check && (
+                <div className="w-full h-screen absolute top-0 left-0 bg-[rgba(0,0,0,.9)] z-50 flex justify-center items-center">
+                  <AiFillCloseCircle
+                    onClick={() => setCheck(false)}
+                    className="text-white"
+                  />
+                  <Camera
+                    onTakePhoto={(dataUri) => {
+                      handleTakePhoto(dataUri);
+                    }}
+                    idealFacingMode={FACING_MODES.ENVIRONMENT}
+                    idealResolution={{ width: 640, height: 480 }}
+                    imageType={IMAGE_TYPES.JPG}
+                    imageCompression={0.97}
+                    isMaxResolution={true}
+                    isImageMirror={true}
+                    isSilentMode={false}
+                    isDisplayStartCameraError={false}
+                    isFullscreen={true}
+                    sizeFactor={1}
+                  />
+                </div>
+              )}
+              {!audiourl &&
+                (msg != "" ? (
+                  <button
+                    onClick={handleMsgSend}
+                    className="bg-primary p-3 rounded-md text-white"
+                  >
+                    Send
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleMsgSend}
+                    className="bg-primary p-3 rounded-md text-white"
+                  >
+                    emoji
+                  </button>
+                ))}
             </div>
-          )}
-          {!audiourl && (
-            <button
-              onClick={handleMsgSend}
-              className="bg-primary p-3 rounded-md text-white"
-            >
-              Send
-            </button>
-          )}
-        </div>
+          ))
+        )}
       </div>
     </div>
   );
